@@ -1,0 +1,117 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper functions for validation
+    function isValidId(id) { 
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$'); 
+    }
+
+    function isValidUser(data) {
+      return data.keys().hasAll(['username', 'password', 'role', 'createdAt'])
+        && data.keys().size() == 4
+        && data.username is string && data.username.size() <= 100
+        && data.password is string && data.password.size() <= 100
+        && data.role is string && (data.role == 'user' || data.role == 'admin')
+        && (data.createdAt is int || data.createdAt is float);
+    }
+
+    function isValidCategory(data) {
+      return data.keys().hasAll(['name', 'createdAt'])
+        && data.keys().size() == 2
+        && data.name is string && data.name.size() <= 100
+        && (data.createdAt is int || data.createdAt is float);
+    }
+
+    function isValidProduct(data) {
+      return data.keys().hasAll(['title', 'description', 'categoryId', 'categoryName', 'price', 'stock', 'imageUrl', 'createdAt'])
+        && data.keys().size() == 8
+        && data.title is string && data.title.size() <= 200
+        && data.description is string && data.description.size() <= 5000
+        && data.categoryId is string && data.categoryId.size() <= 100
+        && data.categoryName is string && data.categoryName.size() <= 100
+        && (data.price is int || data.price is float)
+        && (data.stock is int || data.stock is float)
+        && data.imageUrl is string
+        && (data.createdAt is int || data.createdAt is float);
+    }
+
+    function isValidOrder(data) {
+      return data.keys().hasAll(['userId', 'username', 'phone', 'address', 'postalCode', 'receiptUrl', 'status', 'items', 'createdAt'])
+        && data.userId is string && data.userId.size() <= 100
+        && data.username is string && data.username.size() <= 100
+        && data.phone is string && data.phone.size() <= 50
+        && data.address is string && data.address.size() <= 1000
+        && data.postalCode is string && data.postalCode.size() <= 50
+        && data.receiptUrl is string
+        && data.status is string && (data.status == 'pending' || data.status == 'approved' || data.status == 'rejected')
+        && data.items is list
+        && (data.createdAt is int || data.createdAt is float)
+        && (!data.keys().contains('deliveryInfo') || data.deliveryInfo is string)
+        && (!data.keys().contains('rejectReason') || data.rejectReason is string);
+    }
+
+    function isValidTicket(data) {
+      return data.keys().hasAll(['userId', 'username', 'subject', 'message', 'status', 'createdAt'])
+        && data.userId is string && data.userId.size() <= 100
+        && data.username is string && data.username.size() <= 100
+        && data.subject is string && data.subject.size() <= 500
+        && data.message is string && data.message.size() <= 5000
+        && data.status is string && (data.status == 'pending' || data.status == 'replied')
+        && (data.createdAt is int || data.createdAt is float)
+        && (!data.keys().contains('reply') || data.reply is string);
+    }
+
+    function isValidBanner(data) {
+      return data.keys().hasAll(['imageUrl', 'createdAt'])
+        && data.keys().size() == 2
+        && data.imageUrl is string
+        && (data.createdAt is int || data.createdAt is float);
+    }
+
+    function isValidComment(data) {
+      return data.keys().hasAll(['productId', 'username', 'text', 'createdAt'])
+        && data.keys().size() == 4
+        && data.productId is string && data.productId.size() <= 100
+        && data.username is string && data.username.size() <= 100
+        && data.text is string && data.text.size() <= 1000
+        && (data.createdAt is int || data.createdAt is float);
+    }
+
+    // Collection match rules
+    match /users/{userId} {
+      allow read: if true;
+      allow write: if isValidUser(request.resource.data);
+    }
+
+    match /categories/{categoryId} {
+      allow read: if true;
+      allow write: if isValidCategory(request.resource.data);
+    }
+
+    match /products/{productId} {
+      allow read: if true;
+      allow write: if isValidProduct(request.resource.data);
+    }
+
+    match /orders/{orderId} {
+      allow read: if true;
+      allow write: if isValidOrder(request.resource.data);
+    }
+
+    match /tickets/{ticketId} {
+      allow read: if true;
+      allow write: if isValidTicket(request.resource.data);
+    }
+
+    match /banners/{bannerId} {
+      allow read: if true;
+      allow write: if isValidBanner(request.resource.data);
+    }
+
+    match /comments/{commentId} {
+      allow read: if true;
+      allow write: if isValidComment(request.resource.data);
+    }
+  }
+}
