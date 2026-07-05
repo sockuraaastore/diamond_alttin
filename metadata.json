@@ -1,6 +1,0 @@
-{
-  "name": "diamond alttin",
-  "description": "فروشگاه لوکس بدلیجات و جواهرات دایموند آلتین با طراحی مدرن و درخشش بی‌نظیر",
-  "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
-}
